@@ -1,0 +1,67 @@
+# Site settings
+title:       syuusyou's log
+email:       syuusyou@gmail.com
+author:      Hsiu-Chang Chen
+description: "Hello World"
+baseurl:     ""
+url:         "http://syuusyou.github.io"
+date_format: "%Y/%m/%d"
+header_pages:
+ - about.md
+
+# Optional features
+show_footer:          true
+animated:             false
+show_post_footers:    false
+enable_mathjax:       true
+extended_fonts:       false
+enable_anchorjs:      true
+
+# Disqus post comments
+# (leave blank to disable Disqus)
+disqus_shortname: syuusyou-github-io
+
+# Social icons
+facebook_username: syusyou
+github_username: syuusyou
+linkedin_username: syusyou
+
+# Post sharing icons
+show_sharing_icons: false
+# Change to 'true' to enable individual icons
+share_facebook: false
+share_twitter: false
+
+text:
+  pagination:
+    newer: 'Newer'
+    older: 'Older'
+  share_buttons:
+    text:         'Share this post!'
+    facebook:     'Share on Facebook'
+    twitter:      'Share on Twitter'
+  post:
+    updated:        'Updated'
+    related_posts:  'Related Posts'
+  index:
+    coming_soon: 'Coming soon...'
+  og_locale: 'en_US'
+
+# Build settings
+markdown:     kramdown
+redcarpet:
+  extensions: ['smart', 'tables', 'with_toc_data']
+permalink:    pretty
+paginate:     5
+sass:
+  style: compressed
+plugins:
+  - jekyll-paginate
+  - jekyll-sitemap
+# https://github.com/jekyll/jekyll/issues/2938
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - Rakefile
+  - README.md
+  - vendor
