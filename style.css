@@ -323,12 +323,12 @@ body {
 }
 
 /* ==========================================================================
-   文章卡片列表
+   文章卡片列表 (單欄：一行一篇文章)
    ========================================================================== */
 .posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
   margin-bottom: 3rem;
 }
 
@@ -336,7 +336,7 @@ body {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
