@@ -1,7 +1,7 @@
 ---
 title: Python 例外處理指南：用 try-except 寫出優雅又強健的程式碼
 date: 2026-10-24
-categories: Python 筆記, 學習筆記
+categories: Python, 程式開發, 技術筆記
 excerpt: 程式執行時難免會遇到檔案不存在、網路斷線或型別轉換失敗。透過 Python 的 try / except / else / finally 機制，我們能優雅地捕捉錯誤並維持系統穩定。
 ---
 
