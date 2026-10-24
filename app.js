@@ -189,14 +189,29 @@
     return html;
   }
 
-  // 根據所有文章的 category 動態生成分類按鈕
+  // 取得單篇文章的分類陣列 (相容 categories 陣列或單一 category 字串)
+  function getPostCategories(post) {
+    if (Array.isArray(post.categories) && post.categories.length > 0) {
+      return post.categories;
+    }
+    if (post.category) {
+      return String(post.category)
+        .split(/[,，、/]/)
+        .map((c) => c.trim())
+        .filter(Boolean);
+    }
+    return ["未分類"];
+  }
+
+  // 根據所有文章的 categories 動態生成分類按鈕
   function renderCategoryTabs() {
     const categories = [];
     allPosts.forEach((post) => {
-      const cat = (post.category || "").trim();
-      if (cat && !categories.includes(cat)) {
-        categories.push(cat);
-      }
+      getPostCategories(post).forEach((cat) => {
+        if (cat && !categories.includes(cat)) {
+          categories.push(cat);
+        }
+      });
     });
 
     const buttonsHtml = [
@@ -213,13 +228,14 @@
   // 渲染文章卡片列表
   function renderPostList() {
     const filtered = allPosts.filter((post) => {
-      const matchCategory = currentCategory === "all" || post.category === currentCategory;
+      const postCats = getPostCategories(post);
+      const matchCategory = currentCategory === "all" || postCats.includes(currentCategory);
       const q = searchQuery.trim().toLowerCase();
       const matchSearch =
         !q ||
         post.title.toLowerCase().includes(q) ||
         post.excerpt.toLowerCase().includes(q) ||
-        post.category.toLowerCase().includes(q);
+        postCats.some((c) => c.toLowerCase().includes(q));
       return matchCategory && matchSearch;
     });
 
@@ -233,24 +249,26 @@
     }
 
     postsContainer.innerHTML = filtered
-      .map(
-        (post) => `
+      .map((post) => {
+        const badgesHtml = getPostCategories(post)
+          .map((cat) => `<span class="post-category">${cat}</span>`)
+          .join("");
+        return `
         <article class="post-card" data-post-id="${post.id}" tabindex="0" role="button" aria-label="閱讀文章：${post.title}">
           <div>
             <div class="post-meta">
-              <span class="post-category">${post.category}</span>
+              <div class="post-categories">${badgesHtml}</div>
               <time datetime="${post.date}">${post.date}</time>
             </div>
             <h2 class="post-title">${post.title}</h2>
             <p class="post-excerpt">${post.excerpt}</p>
           </div>
           <div class="post-card-footer">
-            <span>${post.readTime}</span>
             <span>閱讀全文 →</span>
           </div>
         </article>
-      `
-      )
+      `;
+      })
       .join("");
   }
 
@@ -263,9 +281,11 @@
     }
 
     activePostId = post.id;
-    document.getElementById("reader-category").textContent = post.category;
+    const readerCatsEl = document.getElementById("reader-categories");
+    readerCatsEl.innerHTML = getPostCategories(post)
+      .map((cat) => `<span class="post-category">${cat}</span>`)
+      .join("");
     document.getElementById("reader-date").textContent = post.date;
-    document.getElementById("reader-readtime").textContent = `· ${post.readTime}`;
     document.getElementById("reader-title").textContent = post.title;
     const contentEl = document.getElementById("reader-content");
     contentEl.innerHTML = "<p>正在載入文章內容...</p>";

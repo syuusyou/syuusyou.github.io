@@ -25,6 +25,17 @@ function parseFrontmatter(raw) {
   return { meta, body: match[2].trim() };
 }
 
+function parseCategories(rawCat) {
+  if (!rawCat) return ["未分類"];
+  // 支援 [分類A, 分類B] 或以逗號 (, / ，)、頓號 (、)、斜線 (/) 分隔的多重分類
+  const cleaned = rawCat.replace(/^\[|\]$/g, "");
+  const list = cleaned
+    .split(/[,，、/]/)
+    .map((c) => c.trim().replace(/^['"]|['"]$/g, ""))
+    .filter(Boolean);
+  return list.length > 0 ? list : ["未分類"];
+}
+
 function buildPostsIndex() {
   if (!fs.existsSync(postsDir)) {
     fs.mkdirSync(postsDir, { recursive: true });
@@ -38,18 +49,14 @@ function buildPostsIndex() {
     const id = filename.replace(/\.md$/, "");
     const raw = fs.readFileSync(path.join(postsDir, filename), "utf8");
     const { meta, body } = parseFrontmatter(raw);
-
-    // 自動計算閱讀時間 (約每分鐘 300 字)
-    const charCount = body.replace(/\s+/g, "").length;
-    const estMinutes = Math.max(1, Math.ceil(charCount / 300));
+    const categories = parseCategories(meta.categories || meta.category);
 
     return {
       id,
       file: `posts/${filename}`,
       title: meta.title || id,
       date: meta.date || "2026-10-24",
-      category: meta.category || "心情日常",
-      readTime: meta.readTime || `${estMinutes} 分鐘閱讀`,
+      categories,
       excerpt: meta.excerpt || body.slice(0, 80).replace(/[#>*`]/g, "") + "..."
     };
   });

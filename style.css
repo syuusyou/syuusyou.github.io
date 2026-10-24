@@ -353,11 +353,19 @@ body {
 
 .post-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.65rem;
+  justify-content: space-between;
+  gap: 0.5rem;
   font-size: 0.8rem;
   color: var(--text-secondary);
   margin-bottom: 0.75rem;
+}
+
+.post-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 .post-category {
@@ -389,7 +397,7 @@ body {
 .post-card-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--brand);
