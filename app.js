@@ -62,7 +62,30 @@
     showToast(targetScheme === "dark" ? "🌙 已切換至深色護眼模式" : "☀️ 已切換至淺色閱讀模式");
   });
 
-  // 輕量安全的 Markdown + Frontmatter 解析器
+  // 輕量安全的語法高亮輔助 (支援 Python / JS / Bash 常見語法)
+  function highlightCode(escapedCode, lang) {
+    if (!lang) return escapedCode;
+    return escapedCode.replace(
+      /(#.*$|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:def|return|try|except|else|finally|raise|import|from|as|if|elif|not|in|is|None|True|False|for|while|with|class|pass|const|let|var|function|async|await)\b|\b(?:print|open|len|int|float|str|dict|list|ValueError|ZeroDivisionError|TypeError|FileNotFoundError|KeyError|Exception)\b|\b\d+(?:\.\d+)?\b)/gm,
+      (match) => {
+        if (match.startsWith("#")) {
+          return `<span class="tok-comment">${match}</span>`;
+        }
+        if (match.startsWith('"') || match.startsWith("'")) {
+          return `<span class="tok-string">${match}</span>`;
+        }
+        if (/^\d/.test(match)) {
+          return `<span class="tok-number">${match}</span>`;
+        }
+        if (/^(print|open|len|int|float|str|dict|list|ValueError|ZeroDivisionError|TypeError|FileNotFoundError|KeyError|Exception)$/.test(match)) {
+          return `<span class="tok-builtin">${match}</span>`;
+        }
+        return `<span class="tok-keyword">${match}</span>`;
+      }
+    );
+  }
+
+  // 輕量安全的 Markdown + Frontmatter 解析器 (支援 ``` 程式碼區塊)
   function parseMarkdownFile(raw) {
     let body = raw;
     const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
@@ -86,9 +109,48 @@
     const lines = body.trim().split(/\r?\n/);
     let html = "";
     let inList = false;
+    let inCodeBlock = false;
+    let codeLang = "";
+    let codeLines = [];
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+      const rawLine = lines[i];
+      const line = rawLine.trim();
+
+      // 處理 ``` 圍欄式程式碼區塊
+      if (line.startsWith("```")) {
+        if (!inCodeBlock) {
+          if (inList) {
+            html += "</ul>\n";
+            inList = false;
+          }
+          inCodeBlock = true;
+          codeLang = line.slice(3).trim() || "text";
+          codeLines = [];
+        } else {
+          const escaped = escapeHtml(codeLines.join("\n"));
+          const highlighted = highlightCode(escaped, codeLang.toLowerCase());
+          const langLabel = escapeHtml(codeLang.toUpperCase());
+          html += `
+            <div class="code-block-wrapper">
+              <div class="code-block-header">
+                <span class="code-lang">${langLabel}</span>
+                <button type="button" class="copy-code-btn" aria-label="複製程式碼">📋 複製程式碼</button>
+              </div>
+              <pre class="code-pre"><code class="language-${escapeHtml(codeLang)}">${highlighted}</code></pre>
+            </div>
+          `;
+          inCodeBlock = false;
+          codeLang = "";
+          codeLines = [];
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeLines.push(rawLine);
+        continue;
+      }
 
       if (!line) {
         if (inList) {
@@ -296,6 +358,27 @@
       localStorage.setItem(`clap_${activePostId}`, String(current));
     } catch (e) {}
     showToast("🎉 收到你的鼓勵，咻咻充滿動力！");
+  });
+
+  // 程式碼區塊一鍵複製按鈕
+  articleReader.addEventListener("click", async (e) => {
+    const copyBtn = e.target.closest(".copy-code-btn");
+    if (!copyBtn) return;
+    const wrapper = copyBtn.closest(".code-block-wrapper");
+    const codeEl = wrapper ? wrapper.querySelector("code") : null;
+    if (!codeEl) return;
+
+    try {
+      await navigator.clipboard.writeText(codeEl.innerText);
+      const originalText = copyBtn.textContent;
+      copyBtn.textContent = "✅ 已複製！";
+      showToast("📋 程式碼已複製到剪貼簿！");
+      setTimeout(() => {
+        copyBtn.textContent = originalText;
+      }, 2000);
+    } catch (err) {
+      showToast("⚠️ 無法自動複製，請手動選取複製");
+    }
   });
 
   // 根據網址 Hash 自動打開指定文章

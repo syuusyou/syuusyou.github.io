@@ -904,3 +904,91 @@ body {
     justify-content: center;
   }
 }
+
+
+/* ==========================================================================
+   多行程式碼區塊 (Code Block) 與語法高亮樣式
+   ========================================================================== */
+.code-block-wrapper {
+  margin: 1.5rem 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: light-dark(#f6f3ee, #16171b);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: light-dark(#ebe5dc, #22242a);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.78rem;
+}
+
+.code-lang {
+  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.copy-code-btn {
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.copy-code-btn:hover {
+  color: var(--brand);
+  border-color: var(--brand);
+}
+
+.code-pre {
+  margin: 0;
+  padding: 1.15rem 1.25rem;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  tab-size: 4;
+}
+
+.article-body .code-pre code {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: inherit;
+  color: light-dark(#2b2623, #e6e2dc);
+}
+
+/* 語法高亮 Token 色票 (自動適應深淺色模式) */
+.tok-keyword {
+  color: light-dark(#a626a4, #c678dd);
+  font-weight: 600;
+}
+
+.tok-builtin {
+  color: light-dark(#0184bc, #56b6c2);
+}
+
+.tok-string {
+  color: light-dark(#38761d, #98c379);
+}
+
+.tok-number {
+  color: light-dark(#b45f06, #d19a66);
+}
+
+.tok-comment {
+  color: light-dark(#8c827a, #7f848e);
+  font-style: italic;
+}
