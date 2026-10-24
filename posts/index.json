@@ -1,0 +1,29 @@
+[
+  {
+    "id": "hello-xiuxiu-blog",
+    "file": "posts/hello-xiuxiu-blog.md",
+    "title": "第一篇隨筆：為什麼我決定從零開始架設自己的小天地？",
+    "date": "2026-10-24",
+    "category": "心情日常",
+    "readTime": "3 分鐘閱讀",
+    "excerpt": "在社群媒體被演算法填滿的時代，我想要擁有一個完全屬於自己、安靜且溫暖的文字角落，記錄生活中的微小幸福。"
+  },
+  {
+    "id": "website-from-zero-notes",
+    "file": "posts/website-from-zero-notes.md",
+    "title": "從零到上線：原來做一個網站給全世界看，需要這 6 個步驟！",
+    "date": "2026-10-24",
+    "category": "學習筆記",
+    "readTime": "4 分鐘閱讀",
+    "excerpt": "以前總覺得「架設網站」是工程師才懂的魔法，今天親自走過一遍才發現，只要搞懂 HTML、CSS、Markdown 與 Git，每個人都能擁有自己的獨立網站！"
+  },
+  {
+    "id": "autumn-coffee-thoughts",
+    "file": "posts/autumn-coffee-thoughts.md",
+    "title": "微涼的午後，用一杯手沖咖啡的時間與自己對話",
+    "date": "2026-10-22",
+    "category": "生活靈感",
+    "readTime": "2 分鐘閱讀",
+    "excerpt": "十月下旬的風開始帶點涼意，把手機調成勿擾模式，聽著熱水注入咖啡粉的聲音，生活節奏也跟著慢了下來。"
+  }
+]
