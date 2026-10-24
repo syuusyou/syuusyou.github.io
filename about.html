@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- MANDATORY: Declare support for both light and dark themes -->
+  <meta name="color-scheme" content="light dark">
+  <script>
+    try {
+      document.querySelector('meta[name="color-scheme"]').content = localStorage.getItem("color-scheme") ?? "light dark";
+    } catch (e) {}
+  </script>
+  <title>關於咻咻 (Hsiu-Chang Chen) | 咻咻的心情隨筆</title>
+  <meta name="description" content="關於咻咻 (Hsiu-Chang Chen) — Google Firmware Engineer (Pixel WiFi)、台大資工與物理背景，在程式碼之外記錄生活與心情隨筆。">
+
+  <meta property="og:title" content="關於咻咻 (Hsiu-Chang Chen) | 咻咻的心情隨筆">
+  <meta property="og:description" content="認識咻咻：工作經歷、學術背景、專長領域與建立這個部落格的初衷。">
+  <meta property="og:type" content="profile">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-logo" aria-hidden="true">✦</span>
+        <div>
+          <span class="brand-title">咻咻的心情隨筆</span>
+          <span class="brand-subtitle">Xiuxiu's Notes &amp; Journal</span>
+        </div>
+      </a>
+
+      <nav class="site-nav" aria-label="主要導覽">
+        <a href="index.html" class="nav-link">所有文章</a>
+        <a href="about.html" class="nav-link active" aria-current="page">關於咻咻</a>
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="切換深淺色閱讀模式" title="切換深淺色主題">
+          <span class="theme-icon-light" aria-hidden="true">☀️</span>
+          <span class="theme-icon-dark" aria-hidden="true">🌙</span>
+          <span class="theme-label">閱讀模式</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content about-page">
+    <!-- 個人檔案頂部介紹卡 -->
+    <section class="profile-hero">
+      <div class="profile-avatar" aria-hidden="true">🧑‍💻</div>
+      <div class="profile-info">
+        <div class="hero-badge">👋 嗨，很高興認識你</div>
+        <h1 class="profile-name">咻咻 <span class="profile-en-name">(Hsiu-Chang Chen)</span></h1>
+        <p class="profile-headline">Firmware Engineer @ Google · Pixel WiFi</p>
+        <p class="profile-location">📍 台灣 新北市（台北–基隆都會區）</p>
+        <p class="profile-bio">
+          白天是專注於底層韌體、無線通訊與系統效能的工程師；下班後則喜歡在這個小天地裡慢下腳步，用文字記錄生活中的微小靈感、閱讀體會與學習筆記。
+        </p>
+        <div class="profile-links">
+          <a href="https://www.linkedin.com/in/syusyou" target="_blank" rel="noopener noreferrer" class="btn-primary profile-link-btn">
+            🔗 LinkedIn 個人檔案
+          </a>
+          <a href="index.html" class="btn-secondary profile-link-btn">
+            📖 閱讀我的隨筆文章
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 工作經歷 (Work Experience) -->
+    <section class="resume-section">
+      <h2 class="section-heading"><span aria-hidden="true">💼</span> 工作經歷 (Experience)</h2>
+      <div class="timeline">
+        <article class="timeline-item">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div>
+                <h3 class="timeline-role">Firmware Engineer</h3>
+                <p class="timeline-org">Google · 新北市, 台灣</p>
+              </div>
+              <span class="timeline-date">2018 年 1 月 – 現在</span>
+            </div>
+            <ul class="timeline-list">
+              <li><strong>Pixel WiFi Team</strong>：負責 Google Pixel 系列裝置的 WiFi 韌體與無線連線系統開發、穩定度與效能調校。</li>
+              <li>參與 <strong>Android Open Source Project (AOSP)</strong> 專案開發與維護（2018 年 7 月 – 現在）。</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="timeline-item">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div>
+                <h3 class="timeline-role">Senior Software Engineer</h3>
+                <p class="timeline-org">HTC · 新北市, 台灣</p>
+              </div>
+              <span class="timeline-date">2017 年 3 月 – 2018 年 1 月</span>
+            </div>
+            <ul class="timeline-list">
+              <li><strong>WiFi Team</strong>：設計、開發並強化 HTC 智慧型手機產品之 WiFi 軟體架構。</li>
+              <li>最佳化無線通訊平台之傳輸效能與功耗表現（Power Consumption Optimization）。</li>
+              <li>與晶片商協作整合 WiFi 晶片解決方案，參與產品包含 <code>HTC U11 (O MR)</code>、<code>U11+</code>、<code>U11 EYEs</code>。</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="timeline-item">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div>
+                <h3 class="timeline-role">Software Engineer</h3>
+                <p class="timeline-org">Infortrend Technology, Inc. (普安科技) · 新北市, 台灣</p>
+              </div>
+              <span class="timeline-date">2014 年 10 月 – 2017 年 3 月</span>
+            </div>
+            <ul class="timeline-list">
+              <li><strong>Firmware Team</strong>：開發與維護企業級儲存系統之自動分層儲存（Tiering）、精簡配置（Thin-Provisioning）、快照（Snapshot）與遠端複製（Replication）功能，並將 Tiering 效能提升達 <strong>80%</strong>。</li>
+              <li><strong>GlusterFS Team</strong>：整合開源分散式檔案系統 <code>GlusterFS</code>，打造具備橫向擴充能力（Scale-out）的 NAS 儲存方案。</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 教育背景與認證雙欄區 -->
+    <div class="resume-two-col">
+      <section class="resume-section">
+        <h2 class="section-heading"><span aria-hidden="true">🎓</span> 學歷背景 (Education)</h2>
+        <div class="card-stack">
+          <div class="info-card">
+            <h3>國立臺灣大學 (National Taiwan University)</h3>
+            <p class="info-card-sub">資訊工程學系 碩士 (M.S. in Computer Science)</p>
+            <span class="info-card-date">2012 – 2014</span>
+          </div>
+          <div class="info-card">
+            <h3>國立臺灣大學 (National Taiwan University)</h3>
+            <p class="info-card-sub">資訊工程學系 學士 (B.S. in Computer Science)</p>
+            <span class="info-card-date">2010 – 2012</span>
+          </div>
+          <div class="info-card">
+            <h3>國立臺灣大學 (National Taiwan University)</h3>
+            <p class="info-card-sub">物理學系 學士 (B.S. in Physics)</p>
+            <span class="info-card-date">2007 – 2010</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="resume-section">
+        <h2 class="section-heading"><span aria-hidden="true">🛠️</span> 專業技能與認證</h2>
+        <div class="info-card">
+          <h3>核心技術與領域</h3>
+          <div class="skill-tags">
+            <span class="skill-tag">C / C++</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">WiFi &amp; Connectivity</span>
+            <span class="skill-tag">Firmware Engineering</span>
+            <span class="skill-tag">Linux Kernel / System</span>
+            <span class="skill-tag">Android Development (AOSP)</span>
+            <span class="skill-tag">Algorithms</span>
+            <span class="skill-tag">Computer Science</span>
+          </div>
+
+          <h3 class="mt-md">專業證照</h3>
+          <div class="cert-box">
+            <strong>🏅 Google AI Essentials</strong>
+            <p>發證機構：Google · 2026 年 1 月（Credential ID: <code>DTNAERN97LYD</code>）</p>
+          </div>
+
+          <h3 class="mt-md">語言能力</h3>
+          <ul class="lang-list">
+            <li><strong>繁體中文</strong>：母語</li>
+            <li><strong>English</strong>：專業商務工作溝通</li>
+            <li><strong>日本語</strong>：基礎日常會話</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- 學術著作與發表 (Publications) -->
+    <section class="resume-section">
+      <h2 class="section-heading"><span aria-hidden="true">📄</span> 學術著作與發表 (Publications)</h2>
+      <div class="card-stack">
+        <article class="info-card">
+          <h3>Write-aware memory management for hybrid SLC-MLC PCM memory systems</h3>
+          <p class="info-card-sub">發表於 <em>ACM SIGAPP Applied Computing Review</em> · 2017 年 8 月 3 日</p>
+        </article>
+        <article class="info-card">
+          <h3>Enabling Hybrid PCM Memory System with Inherent Memory Management</h3>
+          <p class="info-card-sub">發表於 <em>RACS '16: Proceedings of the International Conference on Research in Adaptive and Convergent Systems</em> · 2016 年 10 月 11 日</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="current-year">2026</span> 咻咻的心情隨筆 · 保留所有權利</p>
+      <p class="footer-hint">💡 提示：想新增文章？只需在 <code>posts/</code> 資料夾新增 <code>.md</code> (Markdown) 檔案即可！</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // 關於頁面深淺色主題切換與年份更新
+    (function () {
+      document.getElementById("current-year").textContent = new Date().getFullYear();
+      const themeToggleBtn = document.getElementById("theme-toggle");
+      const toastEl = document.getElementById("toast");
+
+      function showToast(message) {
+        toastEl.textContent = message;
+        toastEl.classList.add("show");
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+      }
+
+      themeToggleBtn.addEventListener("click", () => {
+        const meta = document.querySelector('meta[name="color-scheme"]');
+        const systemIsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const systemScheme = systemIsDark ? "dark" : "light";
+        let stored = null;
+        try { stored = localStorage.getItem("color-scheme"); } catch (e) {}
+        const currentlyRendered = stored === "dark" || stored === "light" ? stored : systemScheme;
+        const targetScheme = currentlyRendered === "dark" ? "light" : "dark";
+        try {
+          if (targetScheme === systemScheme) {
+            localStorage.removeItem("color-scheme");
+            meta.content = "light dark";
+          } else {
+            localStorage.setItem("color-scheme", targetScheme);
+            meta.content = targetScheme;
+          }
+        } catch (e) {
+          meta.content = targetScheme;
+        }
+        showToast(targetScheme === "dark" ? "🌙 已切換至深色護眼模式" : "☀️ 已切換至淺色閱讀模式");
+      });
+    })();
+  </script>
+</body>
+</html>
