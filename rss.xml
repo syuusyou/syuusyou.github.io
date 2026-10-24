@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>咻咻的心情隨筆</title>
+    <link>https://syuusyou.github.io/</link>
+    <description>記錄生活、靈感與學習點滴的個人部落格。</description>
+    <language>zh-Hant</language>
+    <lastBuildDate>Sat, 24 Oct 2026 20:30:51 GMT</lastBuildDate>
+    <atom:link href="https://syuusyou.github.io/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Hello World!</title>
+      <link>https://syuusyou.github.io/#post/hello-world</link>
+      <guid>https://syuusyou.github.io/#post/hello-world</guid>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <category>心情隨筆</category>
+      <description>歡迎來到咻咻的心情隨筆！這是部落格正式上線後的第一篇文章。</description>
+    </item>
+  </channel>
+</rss>

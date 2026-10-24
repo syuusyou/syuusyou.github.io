@@ -2,6 +2,7 @@
 title: Hello World!
 date: 2026-10-25
 categories: 心情隨筆
+pinned: true
 excerpt: 歡迎來到咻咻的心情隨筆！這是部落格正式上線後的第一篇文章。
 ---
 
