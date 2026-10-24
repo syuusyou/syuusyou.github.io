@@ -189,6 +189,27 @@
     return html;
   }
 
+  // 根據所有文章的 category 動態生成分類按鈕
+  function renderCategoryTabs() {
+    const categories = [];
+    allPosts.forEach((post) => {
+      const cat = (post.category || "").trim();
+      if (cat && !categories.includes(cat)) {
+        categories.push(cat);
+      }
+    });
+
+    const buttonsHtml = [
+      `<button type="button" class="category-btn ${currentCategory === "all" ? "active" : ""}" data-category="all" role="tab" aria-selected="${currentCategory === "all"}">全部隨筆</button>`,
+      ...categories.map((cat) => {
+        const isActive = currentCategory === cat;
+        return `<button type="button" class="category-btn ${isActive ? "active" : ""}" data-category="${cat}" role="tab" aria-selected="${isActive}">${cat}</button>`;
+      })
+    ].join("");
+
+    categoryTabs.innerHTML = buttonsHtml;
+  }
+
   // 渲染文章卡片列表
   function renderPostList() {
     const filtered = allPosts.filter((post) => {
@@ -380,6 +401,7 @@
     try {
       const res = await fetch("posts/index.json");
       allPosts = await res.json();
+      renderCategoryTabs();
       renderPostList();
       handleHashRouting();
     } catch (e) {
