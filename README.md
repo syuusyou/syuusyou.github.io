@@ -10,7 +10,7 @@
   - `index.json`（由 `build-posts.js` 自動掃描生成的文章目錄）
 - `build-posts.js`：自動掃描 `posts/*.md` 並更新目錄的腳本
 - `index.html`：網站主畫面結構與 SEO 標籤
-- `about.html`：獨立的「關於咻咻 (Hsiu-Chang Chen)」個人經歷頁面
+- `about.html`：獨立的「關於咻咻」個人經歷頁面
 - `style.css`：現代響應式排版與深淺色主題樣式
 - `app.js`：前端 Markdown 即時解析、分類篩選與搜尋邏輯
 
