@@ -13,8 +13,6 @@
   const backToListBtn = document.getElementById("back-to-list");
   const copyLinkBtn = document.getElementById("copy-link-btn");
   const homeLink = document.getElementById("home-link");
-  const clapBtn = document.getElementById("clap-btn");
-  const clapCountEl = document.getElementById("clap-count");
   const themeToggleBtn = document.getElementById("theme-toggle");
   const toastEl = document.getElementById("toast");
 
@@ -251,13 +249,6 @@
     const contentEl = document.getElementById("reader-content");
     contentEl.innerHTML = "<p>正在載入文章內容...</p>";
 
-    // 載入該文章的拍手鼓勵次數
-    let claps = 0;
-    try {
-      claps = parseInt(localStorage.getItem(`clap_${post.id}`) || "0", 10);
-    } catch (e) {}
-    clapCountEl.textContent = claps;
-
     // 隱藏列表、顯示全文閱讀器
     heroSection.classList.add("hidden");
     controlsSection.classList.add("hidden");
@@ -347,17 +338,6 @@
     } catch (e) {
       showToast("🔗 請直接複製瀏覽器上方網址列分享！");
     }
-  });
-
-  // 拍手鼓勵按鈕
-  clapBtn.addEventListener("click", () => {
-    if (!activePostId) return;
-    let current = parseInt(clapCountEl.textContent || "0", 10) + 1;
-    clapCountEl.textContent = current;
-    try {
-      localStorage.setItem(`clap_${activePostId}`, String(current));
-    } catch (e) {}
-    showToast("🎉 收到你的鼓勵，咻咻充滿動力！");
   });
 
   // 程式碼區塊一鍵複製按鈕
