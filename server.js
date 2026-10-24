@@ -1,11 +1,10 @@
 /**
  * 本地即時預覽伺服器 (server.js)
- * 特色：每次重新整理網頁時，會自動重新掃描 posts/*.md，新增 Markdown 文章免手動重啟！
+ * 特色：每次重新整理網頁時，會自動重新載入最新的 build-posts.js 並掃描 posts/*.md
  */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { buildPostsIndex } = require("./build-posts");
 
 const PORT = 3000;
 const ROOT_DIR = __dirname;
@@ -23,9 +22,12 @@ http
     let urlPath = decodeURIComponent(req.url.split("?")[0]);
     if (urlPath === "/") urlPath = "/index.html";
 
-    // 每次請求文章目錄時，自動即時掃描 posts/ 資料夾底下的 .md 檔案
+    // 每次請求文章目錄時，清除快取並重新執行最新的 buildPostsIndex()
     if (urlPath === "/posts/index.json") {
       try {
+        const buildModulePath = require.resolve("./build-posts");
+        delete require.cache[buildModulePath];
+        const { buildPostsIndex } = require("./build-posts");
         buildPostsIndex();
       } catch (e) {}
     }
@@ -38,7 +40,10 @@ http
         return;
       }
       const ext = path.extname(filePath).toLowerCase();
-      res.writeHead(200, { "Content-Type": MIME_TYPES[ext] || "text/plain; charset=utf-8" });
+      res.writeHead(200, {
+        "Content-Type": MIME_TYPES[ext] || "text/plain; charset=utf-8",
+        "Cache-Control": "no-store"
+      });
       res.end(data);
     });
   })
