@@ -493,6 +493,9 @@
     const script = document.createElement("script");
     script.src = "https://giscus.app/client.js";
     script.setAttribute("data-repo", "syuusyou/syuusyou.github.io");
+    script.setAttribute("data-repo-id", "MDEwOlJlcG9zaXRvcnk1MzgyNTU2MQ==");
+    script.setAttribute("data-category", "General");
+    script.setAttribute("data-category-id", "DIC_kwDOAzVQGc4DJh35");
     script.setAttribute("data-mapping", "specific");
     script.setAttribute("data-term", postId);
     script.setAttribute("data-strict", "0");
