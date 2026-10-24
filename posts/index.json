@@ -1,49 +1,12 @@
 [
   {
-    "id": "hello-hsiuhsiu-blog",
-    "file": "posts/hello-hsiuhsiu-blog.md",
-    "title": "第一篇隨筆：為什麼我決定從零開始架設自己的小天地？",
-    "date": "2026-10-24",
+    "id": "hello-world",
+    "file": "posts/hello-world.md",
+    "title": "Hello World!",
+    "date": "2026-10-25",
     "categories": [
-      "心情隨筆",
-      "網站架設"
+      "心情隨筆"
     ],
-    "excerpt": "在社群媒體被演算法填滿的時代，我想要擁有一個完全屬於自己、安靜且溫暖的文字角落，記錄生活中的微小幸福。"
-  },
-  {
-    "id": "python-try-except-guide",
-    "file": "posts/python-try-except-guide.md",
-    "title": "Python 例外處理指南：用 try-except 寫出優雅又強健的程式碼",
-    "date": "2026-10-24",
-    "categories": [
-      "Python",
-      "程式開發",
-      "技術筆記"
-    ],
-    "excerpt": "程式執行時難免會遇到檔案不存在、網路斷線或型別轉換失敗。透過 Python 的 try / except / else / finally 機制，我們能優雅地捕捉錯誤並維持系統穩定。"
-  },
-  {
-    "id": "website-from-zero-notes",
-    "file": "posts/website-from-zero-notes.md",
-    "title": "從零到上線：原來做一個網站給全世界看，需要這 6 個步驟！",
-    "date": "2026-10-24",
-    "categories": [
-      "網站架設",
-      "Git",
-      "程式開發",
-      "技術筆記"
-    ],
-    "excerpt": "以前總覺得「架設網站」是工程師才懂的魔法，今天親自走過一遍才發現，只要搞懂 HTML、CSS、Markdown 與 Git，每個人都能擁有自己的獨立網站！"
-  },
-  {
-    "id": "autumn-coffee-thoughts",
-    "file": "posts/autumn-coffee-thoughts.md",
-    "title": "微涼的午後，用一杯手沖咖啡的時間與自己對話",
-    "date": "2026-10-22",
-    "categories": [
-      "心情隨筆",
-      "咖啡日常"
-    ],
-    "excerpt": "十月下旬的風開始帶點涼意，把手機調成勿擾模式，聽著熱水注入咖啡粉的聲音，生活節奏也跟著慢了下來。"
+    "excerpt": "歡迎來到咻咻的心情隨筆！這是部落格正式上線後的第一篇文章。"
   }
 ]
