@@ -303,6 +303,7 @@
 
     try {
       const res = await fetch(post.file);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const mdText = await res.text();
       contentEl.innerHTML = parseMarkdownFile(mdText);
     } catch (err) {
