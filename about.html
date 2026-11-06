@@ -171,13 +171,17 @@
     </div>
   </footer>
 
+  <!-- 右下角回到頂部浮動按鈕 -->
+  <button type="button" id="back-to-top" class="back-to-top" aria-label="回到頁面頂部" title="回到頂部">↑</button>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // 關於頁面深淺色主題切換與年份更新
+    // 關於頁面深淺色主題切換、年份更新與回到頂部按鈕
     (function () {
       document.getElementById("current-year").textContent = new Date().getFullYear();
       const themeToggleBtn = document.getElementById("theme-toggle");
+      const backToTopBtn = document.getElementById("back-to-top");
       const toastEl = document.getElementById("toast");
 
       function showToast(message) {
@@ -207,6 +211,19 @@
           meta.content = targetScheme;
         }
         showToast(targetScheme === "dark" ? "🌙 已切換至深色護眼模式" : "☀️ 已切換至淺色閱讀模式");
+      });
+
+      window.addEventListener("scroll", () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        if (scrollTop > 320) {
+          backToTopBtn.classList.add("visible");
+        } else {
+          backToTopBtn.classList.remove("visible");
+        }
+      }, { passive: true });
+
+      backToTopBtn.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
     })();
   </script>

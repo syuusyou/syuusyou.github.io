@@ -1,14 +1,17 @@
 /**
  * 咻咻的心情隨筆 - 部落格互動與全功能 Markdown 解析邏輯 (app.js)
  * 支援：
- * A. Markdown 圖片燈箱、表格、核取方塊、有序/無序清單、分隔線、程式碼高亮與一鍵複製
- * B. 自動生成文章目錄 (TOC)、上下篇導覽、頂部閱讀進度條、回到頂部按鈕
+ * A. Marked.js (GFM) 完整解析 + Highlight.js 多語言程式碼語法高亮與一鍵複製
+ * B. 自動生成文章目錄 (TOC)、上下篇導覽、頂部閱讀進度條、回到頂部按鈕、圖片放大燈箱
  * C. Giscus 讀者留言系統 (自動隨深淺色切換)
- * D. 標題 + 分類 + 摘要 + 完整內文 (searchText) 全文即時搜尋
- * E. 置頂文章 (pinned) 徽章與年份歸檔時間軸 (#archive)
+ * D. 標題 + 分類 + 摘要 + 完整內文 (searchText) 全文即時搜尋 & 閱讀頁分類標籤點擊篩選
+ * E. 置頂文章 (pinned) 徽章、年份歸檔時間軸 (#archive) 與動態分頁標題 (document.title)
  */
 
 (function () {
+  const DEFAULT_TITLE = document.title;
+  const SITE_NAME = "咻咻的心情隨筆";
+
   const postsContainer = document.getElementById("posts-container");
   const controlsSection = document.getElementById("posts-section");
   const heroSection = document.getElementById("hero-section");
@@ -39,6 +42,16 @@
   let currentCategory = "all";
   let searchQuery = "";
   let activePostId = null;
+
+  // 共用 HTML 跳脫輔助函式 (防止標題如 C++ vector<int> 被當作 HTML 標籤吞字或引發 XSS)
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
 
   // 顯示 Toast 提示訊息
   function showToast(message) {
@@ -97,24 +110,70 @@
     showToast(targetScheme === "dark" ? "🌙 已切換至深色護眼模式" : "☀️ 已切換至淺色閱讀模式");
   });
 
-  // 輕量安全的語法高亮輔助
-  function highlightCode(escapedCode, lang) {
+  // 離線備援語法高亮 (當 Highlight.js CDN 尚未載入時使用)
+  function highlightCodeFallback(escapedCode, lang) {
     if (!lang) return escapedCode;
     return escapedCode.replace(
-      /(#.*$|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:def|return|try|except|else|finally|raise|import|from|as|if|elif|not|in|is|None|True|False|for|while|with|class|pass|const|let|var|function|async|await)\b|\b(?:print|open|len|int|float|str|dict|list|ValueError|ZeroDivisionError|TypeError|FileNotFoundError|KeyError|Exception)\b|\b\d+(?:\.\d+)?\b)/gm,
+      /(\/\/.*$|#.*$|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b(?:def|return|try|except|else|finally|raise|import|from|as|if|elif|not|in|is|None|True|False|for|while|with|class|pass|const|let|var|function|async|await|struct|enum|union|typedef|static|inline|void|int|char|bool|float|double|unsigned|signed|sizeof|volatile|extern|goto|switch|case|default|break|continue|nullptr|NULL)\b|\b(?:uint8_t|uint16_t|uint32_t|uint64_t|int8_t|int16_t|int32_t|int64_t|size_t|ssize_t|print|printf|snprintf|malloc|free|memcpy|memset|open|len|str|dict|list|ValueError|ZeroDivisionError|TypeError|FileNotFoundError|KeyError|Exception)\b|\b(?:0x[0-9a-fA-F]+|\d+(?:\.\d+)?)\b)/gm,
       (match) => {
-        if (match.startsWith("#")) return `<span class="tok-comment">${match}</span>`;
-        if (match.startsWith('"') || match.startsWith("'")) return `<span class="tok-string">${match}</span>`;
-        if (/^\d/.test(match)) return `<span class="tok-number">${match}</span>`;
-        if (/^(print|open|len|int|float|str|dict|list|ValueError|ZeroDivisionError|TypeError|FileNotFoundError|KeyError|Exception)$/.test(match)) {
-          return `<span class="tok-builtin">${match}</span>`;
+        if (match.startsWith("#") || match.startsWith("//")) {
+          return `<span class="hljs-comment">${match}</span>`;
         }
-        return `<span class="tok-keyword">${match}</span>`;
+        if (match.startsWith('"') || match.startsWith("'")) {
+          return `<span class="hljs-string">${match}</span>`;
+        }
+        if (/^(?:0x|\d)/.test(match)) {
+          return `<span class="hljs-number">${match}</span>`;
+        }
+        if (/^(?:uint\d+_t|int\d+_t|size_t|ssize_t|print|printf|snprintf|malloc|free|memcpy|memset|open|len|str|dict|list|ValueError|ZeroDivisionError|TypeError|FileNotFoundError|KeyError|Exception)$/.test(match)) {
+          return `<span class="hljs-built_in">${match}</span>`;
+        }
+        return `<span class="hljs-keyword">${match}</span>`;
       }
     );
   }
 
-  // 全功能 Markdown + Frontmatter 解析器 (回傳 { html, headings })
+  // 使用 Highlight.js 進行多語言程式碼高亮並包裝複製按鈕容器
+  function buildCodeBlockHtml(rawCode, rawLang) {
+    const requestedLang = (rawLang || "").trim().toLowerCase();
+    let displayLang = requestedLang || "text";
+    let highlightedHtml = "";
+
+    if (typeof window !== "undefined" && window.hljs) {
+      try {
+        if (requestedLang && window.hljs.getLanguage(requestedLang)) {
+          const res = window.hljs.highlight(rawCode, {
+            language: requestedLang,
+            ignoreIllegals: true
+          });
+          highlightedHtml = res.value;
+        } else {
+          const autoRes = window.hljs.highlightAuto(rawCode);
+          highlightedHtml = autoRes.value;
+          if (!requestedLang && autoRes.language) {
+            displayLang = autoRes.language;
+          }
+        }
+      } catch (e) {
+        highlightedHtml = highlightCodeFallback(escapeHtml(rawCode), displayLang);
+      }
+    } else {
+      highlightedHtml = highlightCodeFallback(escapeHtml(rawCode), displayLang);
+    }
+
+    const langLabel = escapeHtml(displayLang.toUpperCase());
+    return `
+      <div class="code-block-wrapper">
+        <div class="code-block-header">
+          <span class="code-lang">${langLabel}</span>
+          <button type="button" class="copy-code-btn" aria-label="複製程式碼">📋 複製程式碼</button>
+        </div>
+        <pre class="code-pre"><code class="hljs language-${escapeHtml(displayLang)}">${highlightedHtml}</code></pre>
+      </div>
+    `;
+  }
+
+  // 全功能 Markdown + Frontmatter 解析器 (優先使用 Marked.js GFM + Highlight.js，並透過 DOM 增強圖片燈箱、TOC 與程式碼區塊)
   function parseMarkdownFile(raw) {
     let body = raw;
     const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
@@ -122,36 +181,152 @@
       body = fmMatch[2];
     }
 
-    const escapeHtml = (str) =>
-      String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+    const headings = [];
 
-    const formatInline = (text) =>
-      escapeHtml(text)
+    // 當 Marked.js 已載入時，使用標準 GFM 解析器並搭配 <template> DOM 結構化增強
+    if (typeof window !== "undefined" && window.marked && typeof window.marked.parse === "function") {
+      const rawHtml = window.marked.parse(body.trim(), {
+        gfm: true,
+        breaks: false
+      });
+
+      const tpl = document.createElement("template");
+      tpl.innerHTML = rawHtml;
+      const root = tpl.content;
+
+      // 1. 標題 H1~H3：統一將內文 H1 降階為 H2 (保留頁面唯一 H1 給文章主標題)，並建立 TOC 錨點
+      root.querySelectorAll("h1, h2, h3").forEach((headingEl) => {
+        const origLevel = Number(headingEl.tagName.slice(1));
+        const normalizedLevel = origLevel === 1 ? 2 : origLevel;
+        const slug = `heading-${headings.length + 1}`;
+        const text = headingEl.textContent.trim();
+        headings.push({ id: slug, text, level: normalizedLevel });
+
+        if (origLevel === 1) {
+          const h2 = document.createElement("h2");
+          h2.innerHTML = headingEl.innerHTML;
+          h2.id = slug;
+          headingEl.replaceWith(h2);
+        } else {
+          headingEl.id = slug;
+        }
+      });
+
+      // 2. 圍欄式程式碼區塊 (pre > code)：套用 Highlight.js 語法高亮與複製按鈕 Header
+      root.querySelectorAll("pre > code").forEach((codeEl) => {
+        const preEl = codeEl.parentElement;
+        if (!preEl || preEl.tagName !== "PRE") return;
+        const langMatch = (codeEl.className || "").match(/(?:language|lang)-([a-zA-Z0-9_+-]+)/);
+        const rawLang = langMatch ? langMatch[1] : "";
+        const rawCode = codeEl.textContent.replace(/\n$/, "");
+
+        const wrapperTpl = document.createElement("template");
+        wrapperTpl.innerHTML = buildCodeBlockHtml(rawCode, rawLang).trim();
+        preEl.replaceWith(wrapperTpl.content);
+      });
+
+      // 3. 圖片 (img)：加上 zoomable-img 與 lazy loading，獨立圖片段落升級為 <figure class="md-figure">
+      root.querySelectorAll("img").forEach((imgEl) => {
+        imgEl.classList.add("zoomable-img");
+        imgEl.setAttribute("loading", "lazy");
+        const alt = (imgEl.getAttribute("alt") || "").trim();
+        const parent = imgEl.parentElement;
+        if (
+          parent &&
+          parent.tagName === "P" &&
+          parent.children.length === 1 &&
+          parent.textContent.trim() === ""
+        ) {
+          const figure = document.createElement("figure");
+          figure.className = "md-figure";
+          figure.appendChild(imgEl.cloneNode(true));
+          if (alt) {
+            const caption = document.createElement("figcaption");
+            caption.textContent = alt;
+            figure.appendChild(caption);
+          }
+          parent.replaceWith(figure);
+        }
+      });
+
+      // 4. 表格 (table)：加上 .md-table 並包裹 <div class="table-wrapper">
+      root.querySelectorAll("table").forEach((tableEl) => {
+        tableEl.classList.add("md-table");
+        const wrapper = document.createElement("div");
+        wrapper.className = "table-wrapper";
+        tableEl.parentNode.insertBefore(wrapper, tableEl);
+        wrapper.appendChild(tableEl);
+      });
+
+      // 5. 連結 (a)：外部網址加上 target="_blank" rel="noopener noreferrer"，站內連結維持原分頁跳轉
+      root.querySelectorAll("a").forEach((aEl) => {
+        const href = aEl.getAttribute("href") || "";
+        if (/^https?:\/\//i.test(href)) {
+          aEl.setAttribute("target", "_blank");
+          aEl.setAttribute("rel", "noopener noreferrer");
+        }
+      });
+
+      // 6. 待辦核取方塊清單與水平分隔線樣式
+      root.querySelectorAll('li > input[type="checkbox"]').forEach((checkbox) => {
+        const li = checkbox.parentElement;
+        if (li) {
+          li.classList.add("task-item");
+          if (li.parentElement && li.parentElement.tagName === "UL") {
+            li.parentElement.classList.add("task-list");
+          }
+        }
+      });
+      root.querySelectorAll("hr").forEach((hrEl) => {
+        hrEl.classList.add("md-hr");
+      });
+
+      return { html: tpl.innerHTML, headings };
+    }
+
+    // 離線備援解析器 (當外部 CDN 因無網路環境無法載入 Marked.js 時使用)
+    const formatInline = (text) => {
+      const codeTokens = [];
+      const masked = String(text).replace(/`([^`]+)`/g, (_, code) => {
+        const token = `\u0000CODE_${codeTokens.length}\u0000`;
+        codeTokens.push(`<code>${escapeHtml(code)}</code>`);
+        return token;
+      });
+
+      const formatted = escapeHtml(masked)
         .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="zoomable-img" loading="lazy">')
         .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
         .replace(/\*(.+?)\*/g, "<em>$1</em>")
         .replace(/~~(.+?)~~/g, "<del>$1</del>")
-        .replace(/`([^`]+)`/g, "<code>$1</code>")
-        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|#[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, url) => {
+          const isExternal = /^https?:\/\//i.test(url);
+          const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : "";
+          return `<a href="${url}"${attrs}>${label}</a>`;
+        });
+
+      return formatted.replace(/\u0000CODE_(\d+)\u0000/g, (_, idx) => codeTokens[Number(idx)]);
+    };
 
     const lines = body.trim().split(/\r?\n/);
     let html = "";
-    let listType = null; // "ul" | "ol" | null
+    let listType = null;
     let inCodeBlock = false;
     let codeLang = "";
     let codeLines = [];
     let tableLines = [];
-    const headings = [];
+    let quoteLines = [];
 
     function closeList() {
       if (listType) {
         html += `</${listType}>\n`;
         listType = null;
       }
+    }
+
+    function flushQuote() {
+      if (quoteLines.length === 0) return;
+      html += `<blockquote><p>${quoteLines.map(formatInline).join("<br>")}</p></blockquote>\n`;
+      quoteLines = [];
     }
 
     function flushTable() {
@@ -193,27 +368,16 @@
       const rawLine = lines[i];
       const line = rawLine.trim();
 
-      // 處理 ``` 圍欄式程式碼區塊
       if (line.startsWith("```")) {
         closeList();
+        flushQuote();
         flushTable();
         if (!inCodeBlock) {
           inCodeBlock = true;
           codeLang = line.slice(3).trim() || "text";
           codeLines = [];
         } else {
-          const escaped = escapeHtml(codeLines.join("\n"));
-          const highlighted = highlightCode(escaped, codeLang.toLowerCase());
-          const langLabel = escapeHtml(codeLang.toUpperCase());
-          html += `
-            <div class="code-block-wrapper">
-              <div class="code-block-header">
-                <span class="code-lang">${langLabel}</span>
-                <button type="button" class="copy-code-btn" aria-label="複製程式碼">📋 複製程式碼</button>
-              </div>
-              <pre class="code-pre"><code class="language-${escapeHtml(codeLang)}">${highlighted}</code></pre>
-            </div>
-          `;
+          html += buildCodeBlockHtml(codeLines.join("\n"), codeLang);
           inCodeBlock = false;
           codeLang = "";
           codeLines = [];
@@ -226,7 +390,15 @@
         continue;
       }
 
-      // 處理 Markdown 表格列 (| ... |)
+      if (line.startsWith(">")) {
+        closeList();
+        flushTable();
+        quoteLines.push(line.replace(/^>\s?/, ""));
+        continue;
+      } else {
+        flushQuote();
+      }
+
       if (line.startsWith("|") && line.endsWith("|")) {
         closeList();
         tableLines.push(line);
@@ -240,14 +412,12 @@
         continue;
       }
 
-      // 水平分隔線 (--- 或 ***)
       if (/^(?:---|\*\*\*|___)$/.test(line)) {
         closeList();
         html += `<hr class="md-hr">\n`;
         continue;
       }
 
-      // 獨立圖片區塊 ![alt](src)
       const imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
       if (imgMatch) {
         closeList();
@@ -262,7 +432,6 @@
         continue;
       }
 
-      // 標題 H1~H3 (自動產生 TOC 錨點)
       const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
       if (headingMatch) {
         closeList();
@@ -275,14 +444,6 @@
         continue;
       }
 
-      // 引用區塊
-      if (line.startsWith("> ")) {
-        closeList();
-        html += `<blockquote>${formatInline(line.slice(2))}</blockquote>\n`;
-        continue;
-      }
-
-      // 待辦核取方塊清單 (- [x] 或 - [ ])
       const taskMatch = line.match(/^[-*]\s+\[([ xX])\]\s+(.+)$/);
       if (taskMatch) {
         if (listType !== "ul") {
@@ -295,7 +456,6 @@
         continue;
       }
 
-      // 無序清單 (- 或 *)
       if (line.startsWith("- ") || line.startsWith("* ")) {
         if (listType !== "ul") {
           closeList();
@@ -306,7 +466,6 @@
         continue;
       }
 
-      // 有序編號清單 (1. 2. 3.)
       const olMatch = line.match(/^\d+\.\s+(.+)$/);
       if (olMatch) {
         if (listType !== "ol") {
@@ -323,6 +482,7 @@
     }
 
     closeList();
+    flushQuote();
     flushTable();
 
     return { html, headings };
@@ -357,14 +517,15 @@
       `<button type="button" class="category-btn ${currentCategory === "all" ? "active" : ""}" data-category="all" role="tab" aria-selected="${currentCategory === "all"}">全部隨筆</button>`,
       ...categories.map((cat) => {
         const isActive = currentCategory === cat;
-        return `<button type="button" class="category-btn ${isActive ? "active" : ""}" data-category="${cat}" role="tab" aria-selected="${isActive}">${cat}</button>`;
+        const safeCat = escapeHtml(cat);
+        return `<button type="button" class="category-btn ${isActive ? "active" : ""}" data-category="${safeCat}" role="tab" aria-selected="${isActive}">${safeCat}</button>`;
       })
     ].join("");
 
     categoryTabs.innerHTML = buttonsHtml;
   }
 
-  // 渲染文章卡片列表 (支援置頂徽章與全文內文搜尋)
+  // 渲染文章卡片列表 (支援置頂徽章、全文內文搜尋與安全 HTML 跳脫)
   function renderPostList() {
     const filtered = allPosts.filter((post) => {
       const postCats = getPostCategories(post);
@@ -392,17 +553,21 @@
       .map((post) => {
         const pinnedBadge = post.pinned ? `<span class="pinned-badge">📌 置頂</span>` : "";
         const badgesHtml = getPostCategories(post)
-          .map((cat) => `<span class="post-category">${cat}</span>`)
+          .map((cat) => `<span class="post-category">${escapeHtml(cat)}</span>`)
           .join("");
+        const safeId = escapeHtml(post.id);
+        const safeTitle = escapeHtml(post.title);
+        const safeExcerpt = escapeHtml(post.excerpt);
+        const safeDate = escapeHtml(post.date);
         return `
-        <article class="post-card ${post.pinned ? "post-card-pinned" : ""}" data-post-id="${post.id}" tabindex="0" role="button" aria-label="閱讀文章：${post.title}">
+        <article class="post-card ${post.pinned ? "post-card-pinned" : ""}" data-post-id="${safeId}" tabindex="0" role="button" aria-label="閱讀文章：${safeTitle}">
           <div>
             <div class="post-meta">
               <div class="post-categories">${pinnedBadge}${badgesHtml}</div>
-              <time datetime="${post.date}">${post.date}</time>
+              <time datetime="${safeDate}">${safeDate}</time>
             </div>
-            <h2 class="post-title">${post.title}</h2>
-            <p class="post-excerpt">${post.excerpt}</p>
+            <h2 class="post-title">${safeTitle}</h2>
+            <p class="post-excerpt">${safeExcerpt}</p>
           </div>
           <div class="post-card-footer">
             <span>閱讀全文 →</span>
@@ -429,16 +594,19 @@
     const years = Object.keys(byYear).sort((a, b) => b.localeCompare(a));
     archiveContainer.innerHTML = years
       .map((year) => {
+        const safeYear = escapeHtml(year);
         const itemsHtml = byYear[year]
           .map((post) => {
-            const monthDay = (post.date || "").slice(5) || post.date;
+            const monthDay = escapeHtml((post.date || "").slice(5) || post.date);
+            const safeDate = escapeHtml(post.date);
+            const safeTitle = escapeHtml(post.title);
             const cats = getPostCategories(post)
-              .map((c) => `<span class="archive-cat">${c}</span>`)
+              .map((c) => `<span class="archive-cat">${escapeHtml(c)}</span>`)
               .join("");
             return `
               <li class="archive-item">
-                <time class="archive-date" datetime="${post.date}">${monthDay}</time>
-                <a href="#post/${encodeURIComponent(post.id)}" class="archive-link">${post.title}</a>
+                <time class="archive-date" datetime="${safeDate}">${monthDay}</time>
+                <a href="#post/${encodeURIComponent(post.id)}" class="archive-link">${safeTitle}</a>
                 <span class="archive-cats">${cats}</span>
               </li>
             `;
@@ -446,7 +614,7 @@
           .join("");
         return `
           <div class="archive-year-group">
-            <h3 class="archive-year-title">${year} 年 <span class="archive-year-count">(${byYear[year].length})</span></h3>
+            <h3 class="archive-year-title">${safeYear} 年 <span class="archive-year-count">(${byYear[year].length})</span></h3>
             <ul class="archive-list">${itemsHtml}</ul>
           </div>
         `;
@@ -472,7 +640,7 @@
         newerPost
           ? `<a href="#post/${encodeURIComponent(newerPost.id)}" class="prev-next-card prev-card">
                <span class="prev-next-label">← 較新一篇</span>
-               <strong class="prev-next-title">${newerPost.title}</strong>
+               <strong class="prev-next-title">${escapeHtml(newerPost.title)}</strong>
              </a>`
           : `<div class="prev-next-placeholder"></div>`
       }
@@ -480,7 +648,7 @@
         olderPost
           ? `<a href="#post/${encodeURIComponent(olderPost.id)}" class="prev-next-card next-card">
                <span class="prev-next-label">較舊一篇 →</span>
-               <strong class="prev-next-title">${olderPost.title}</strong>
+               <strong class="prev-next-title">${escapeHtml(olderPost.title)}</strong>
              </a>`
           : `<div class="prev-next-placeholder"></div>`
       }
@@ -521,6 +689,7 @@
     }
 
     activePostId = post.id;
+    document.title = `${post.title} | ${SITE_NAME}`;
     navPostsLink.classList.add("active");
     navArchiveLink.classList.remove("active");
 
@@ -529,7 +698,10 @@
     readerCatsEl.innerHTML =
       pinnedBadge +
       getPostCategories(post)
-        .map((cat) => `<span class="post-category">${cat}</span>`)
+        .map((cat) => {
+          const safeCat = escapeHtml(cat);
+          return `<button type="button" class="post-category post-category-clickable" data-category="${safeCat}" title="篩選「${safeCat}」分類的文章">${safeCat}</button>`;
+        })
         .join("");
 
     document.getElementById("reader-date").textContent = post.date;
@@ -565,7 +737,7 @@
         tocList.innerHTML = headings
           .map(
             (h) =>
-              `<li class="toc-item toc-level-${h.level}"><a href="#${h.id}" class="toc-link">${h.text}</a></li>`
+              `<li class="toc-item toc-level-${h.level}"><a href="#${escapeHtml(h.id)}" class="toc-link">${escapeHtml(h.text)}</a></li>`
           )
           .join("");
         articleToc.classList.remove("hidden");
@@ -581,6 +753,7 @@
   // 顯示年份歸檔視圖
   function showArchiveView(pushHash = true) {
     activePostId = null;
+    document.title = `文章年份歸檔 | ${SITE_NAME}`;
     readingProgress.style.width = "0%";
     navPostsLink.classList.remove("active");
     navArchiveLink.classList.add("active");
@@ -601,6 +774,7 @@
   // 返回首頁文章列表
   function showHomeView(updateHistory = true) {
     activePostId = null;
+    document.title = DEFAULT_TITLE;
     readingProgress.style.width = "0%";
     navPostsLink.classList.add("active");
     navArchiveLink.classList.remove("active");
@@ -646,20 +820,18 @@
     }
   });
 
-  // 分類切換
+  // 切換分類並重新渲染列表
+  function selectCategory(categoryName) {
+    currentCategory = categoryName;
+    renderCategoryTabs();
+    renderPostList();
+  }
+
+  // 首頁分類標籤切換
   categoryTabs.addEventListener("click", (e) => {
     const btn = e.target.closest(".category-btn");
     if (!btn) return;
-
-    document.querySelectorAll(".category-btn").forEach((b) => {
-      b.classList.remove("active");
-      b.setAttribute("aria-selected", "false");
-    });
-    btn.classList.add("active");
-    btn.setAttribute("aria-selected", "true");
-
-    currentCategory = btn.dataset.category;
-    renderPostList();
+    selectCategory(btn.dataset.category);
   });
 
   // 關鍵字即時搜尋 (支援標題、分類、摘要與完整文章內文)
@@ -695,8 +867,18 @@
     }
   });
 
-  // 程式碼區塊一鍵複製 & 圖片點擊開啟 <dialog> 放大燈箱
+  // 文章閱讀頁點擊事件：頂部分類膠囊篩選、程式碼一鍵複製、圖片放大燈箱
   articleReader.addEventListener("click", async (e) => {
+    const catBtn = e.target.closest(".post-category-clickable");
+    if (catBtn && catBtn.dataset.category) {
+      const targetCat = catBtn.dataset.category;
+      selectCategory(targetCat);
+      showHomeView(true);
+      controlsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      showToast(`🏷️ 已篩選「${targetCat}」分類的文章`);
+      return;
+    }
+
     const copyBtn = e.target.closest(".copy-code-btn");
     if (copyBtn) {
       const wrapper = copyBtn.closest(".code-block-wrapper");

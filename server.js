@@ -16,7 +16,13 @@ const MIME_TYPES = {
   ".json": "application/json; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
   ".svg": "image/svg+xml",
-  ".xml": "application/xml; charset=utf-8"
+  ".xml": "application/xml; charset=utf-8",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".ico": "image/x-icon"
 };
 
 http
@@ -34,19 +40,32 @@ http
       } catch (e) {}
     }
 
-    const filePath = path.join(ROOT_DIR, urlPath);
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
+    const filePath = path.resolve(ROOT_DIR, "." + urlPath);
+    if (!filePath.startsWith(ROOT_DIR + path.sep) && filePath !== ROOT_DIR) {
+      res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("403 Forbidden");
+      return;
+    }
+
+    fs.stat(filePath, (statErr, stats) => {
+      if (statErr || !stats.isFile()) {
         res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
         res.end("404 Not Found");
         return;
       }
-      const ext = path.extname(filePath).toLowerCase();
-      res.writeHead(200, {
-        "Content-Type": MIME_TYPES[ext] || "text/plain; charset=utf-8",
-        "Cache-Control": "no-store"
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+          res.end("500 Internal Server Error");
+          return;
+        }
+        const ext = path.extname(filePath).toLowerCase();
+        res.writeHead(200, {
+          "Content-Type": MIME_TYPES[ext] || "application/octet-stream",
+          "Cache-Control": "no-store"
+        });
+        res.end(data);
       });
-      res.end(data);
     });
   })
   .listen(PORT, () => {
