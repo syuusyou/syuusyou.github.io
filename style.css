@@ -883,8 +883,7 @@ body {
 .hljs-keyword,
 .hljs-selector-tag,
 .hljs-operator,
-.hljs-char.escape_,
-.tok-keyword {
+.hljs-char.escape_ {
   color: light-dark(#a626a4, #c678dd);
   font-weight: 600;
 }
@@ -892,8 +891,7 @@ body {
 .hljs-type,
 .hljs-built_in,
 .hljs-class .hljs-title,
-.hljs-title.class_,
-.tok-builtin {
+.hljs-title.class_ {
   color: light-dark(#0184bc, #56b6c2);
 }
 
@@ -909,8 +907,7 @@ body {
 .hljs-regexp,
 .hljs-addition,
 .hljs-attribute,
-.hljs-meta .hljs-string,
-.tok-string {
+.hljs-meta .hljs-string {
   color: light-dark(#38761d, #98c379);
 }
 
@@ -921,8 +918,7 @@ body {
 .hljs-tag .hljs-attr,
 .hljs-attr,
 .hljs-symbol,
-.hljs-bullet,
-.tok-number {
+.hljs-bullet {
   color: light-dark(#b45f06, #d19a66);
 }
 
@@ -940,8 +936,7 @@ body {
 }
 
 .hljs-comment,
-.hljs-quote,
-.tok-comment {
+.hljs-quote {
   color: light-dark(#8c827a, #7f848e);
   font-style: italic;
 }
